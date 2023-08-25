@@ -11,7 +11,7 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT;
 mongoose_1.default
-    .connect("mongodb://localhost/investment")
+    .connect("mongodb+srv://investment-platform:<houseparty22>@btc.pp53p4h.mongodb.net/?retryWrites=true&w=majority")
     .then(() => {
     console.log("connected to Mongo");
 })

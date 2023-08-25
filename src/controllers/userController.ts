@@ -59,7 +59,7 @@ interface JwtPayload {
     const signature = jwt.sign(payload, secret);
 
       const link = `Your account creation is almost comeplete. Please kindly click on the link below to activate your account:
-      \nhttp://localhost:8000/verify-account/${signature}`;
+      \nhttps://investment-backend-4.onrender.com/user/verify-account/${signature}`;
       try {
       await mailSent(fromAdminMail, email, userSubject, link);
 
@@ -103,7 +103,7 @@ export const verifyAccount = async (req: Request, res: Response) => {
         const updatedUser = await user.save();
   
         if (updatedUser) {
-          const url = `http://localhost:8000`;
+          const url = `https://investement-git-main-kaodinna.vercel.app/user-login`;
           // const url = `https://dev.ferouchi.com/auth/login/${signature}`;
           res.redirect(url);
         } else {

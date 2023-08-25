@@ -1,6 +1,6 @@
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
-import mongoose from "mongoose";
+import mongoose, { ConnectOptions } from "mongoose";
 import path from "path";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
@@ -15,13 +15,21 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT;
 
+
+// const url = `mongodb+srv://kaodinna:houseparty22@cluster0.nzmmrt4.mongodb.net/?retryWrites=true&w=majority`
+const url = `mongodb+srv://kaodi-investment:houseparty22@cluster0.nzmmrt4.mongodb.net/`
+
 mongoose
-  .connect("mongodb+srv://investment-platform:<houseparty22>@btc.pp53p4h.mongodb.net/?retryWrites=true&w=majority")
-  .then(() => {
+  .connect(url, {
+    retryWrites: true,
+    w: 'majority'
+}).then(() => {
     console.log("connected to Mongo");
-  })
+})
   .catch((error) => {
-    console.log("error");
+    console.error("Error connecting to MongoDB:")
+  console.log(error)
+
   });
 
   app.use(express.json()); // Parse JSON data
