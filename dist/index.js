@@ -10,13 +10,18 @@ const userRoute_1 = __importDefault(require("./src/routes/userRoute"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT;
+// const url = `mongodb+srv://kaodinna:houseparty22@cluster0.nzmmrt4.mongodb.net/?retryWrites=true&w=majority`
+const url = `mongodb+srv://kaodi-investment:houseparty22@cluster0.nzmmrt4.mongodb.net/`;
 mongoose_1.default
-    .connect("mongodb+srv://investment-platform:<houseparty22>@btc.pp53p4h.mongodb.net/?retryWrites=true&w=majority")
-    .then(() => {
+    .connect(url, {
+    retryWrites: true,
+    w: 'majority'
+}).then(() => {
     console.log("connected to Mongo");
 })
     .catch((error) => {
-    console.log("error");
+    console.error("Error connecting to MongoDB");
+    console.log(error);
 });
 app.use(express_1.default.json()); // Parse JSON data
 app.use(express_1.default.urlencoded({ extended: false }));

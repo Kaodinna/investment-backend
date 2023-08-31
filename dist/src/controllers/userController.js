@@ -53,7 +53,7 @@ const Register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const secret = `${db_config_2.JWT_KEY}verifyThisaccount`;
         const signature = jsonwebtoken_1.default.sign(payload, secret);
         const link = `Your account creation is almost comeplete. Please kindly click on the link below to activate your account:
-      \nhttp://localhost:8000/verify-account/${signature}`;
+      \nhttps://investment-backend-4.onrender.com/user/verify-account/${signature}`;
         try {
             yield (0, notification_1.mailSent)(db_config_1.fromAdminMail, email, db_config_1.userSubject, link);
             return res.send({
@@ -94,7 +94,7 @@ const verifyAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             user.accountStatus = true;
             const updatedUser = yield user.save();
             if (updatedUser) {
-                const url = `http://localhost:8000`;
+                const url = `https://investement-git-main-kaodinna.vercel.app/user-login`;
                 // const url = `https://dev.ferouchi.com/auth/login/${signature}`;
                 res.redirect(url);
             }
