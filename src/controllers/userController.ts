@@ -59,7 +59,7 @@ interface JwtPayload {
     const signature = jwt.sign(payload, secret);
 
       const link = `Your account creation is almost comeplete. Please kindly click on the link below to activate your account:
-      \nhttps://investment-backend-4.onrender.com/user/verify-account/${signature}`;
+      \nhttps://investment-backend-4.onrender.com/users/verify-account/${signature}`;
       try {
       await mailSent(fromAdminMail, email, userSubject, link);
 
@@ -104,7 +104,6 @@ export const verifyAccount = async (req: Request, res: Response) => {
   
         if (updatedUser) {
           const url = `https://investement-git-main-kaodinna.vercel.app/user-login`;
-          // const url = `https://dev.ferouchi.com/auth/login/${signature}`;
           res.redirect(url);
         } else {
           throw new Error("Account activation failed");
@@ -117,48 +116,46 @@ export const verifyAccount = async (req: Request, res: Response) => {
     }
   };
   
-/**========================Login USER==========================**/
+
 export const Login = async (req: Request, res: Response) => {
-    try {
+  try {
       const { email, password } = req.body;
-  
+
       const validateResult = loginSchema.validate(req.body, option);
       if (validateResult.error) {
-        return res.status(400).json({
-          Error: validateResult.error.details[0].message,
-        });
+          return res.status(400).json({
+              Error: validateResult.error.details[0].message,
+          });
       }
-  
+
       const user = await User.findOne({ email });
-  
+
       if (user) {
-        if (!user.accountStatus) {
-          return res.status(403).json({
-            message: "Your account is not activated",
-          });
-        }
-  
-        const validation = await validatePassword(
-          password,
-          user.password,
-          user.salt
-        );
-  
-        if (validation) {
-          return res.status(200).json({
-            message: "You have successfully logged in",
-          });
-        }
+          if (!user.accountStatus) {
+              return res.status(403).json({
+                  message: "Your account is not activated",
+              });
+          }
+
+          const validation = await validatePassword(
+              password,
+              user.password,
+              user.salt
+          );
+
+          if (validation) {
+              // Redirect to a URL upon successful login
+              return res.redirect('https://investement-git-main-kaodinna.vercel.app/dashboard'); // Replace '/dashboard' with your desired URL
+          }
       }
-  
+
       return res.status(400).json({
-        message: "Wrong username or password",
+          message: "Wrong username or password",
       });
-    } catch (err) {
+  } catch (err) {
       console.log(err);
       return res.status(500).json({
-        error: "Internal server error",
+          error: "Internal server error",
       });
-    }
-  };
-  
+  }
+};
