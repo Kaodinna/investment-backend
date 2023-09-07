@@ -14,6 +14,7 @@ interface JwtPayload {
 
 /**========================REGISTER USER==========================**/
 
+
   export const Register = async (req: Request, res: Response) => {
     try {
       const {
@@ -51,29 +52,33 @@ interface JwtPayload {
         address,
         phone,
       });
-    const payload = {
+      const payload = {
         email: newUser.email,
         _id: newUser._id, // Include other necessary fields
       };
-    const secret = `${JWT_KEY}verifyThisaccount`;
-    const signature = jwt.sign(payload, secret);
-
-      const link = `Your account creation is almost comeplete. Please kindly click on the link below to activate your account:
-      \nhttps://investment-backend-4.onrender.com/users/verify-account/${signature}`;
+      const secret = `${JWT_KEY}verifyThisaccount`;
+      const signature = jwt.sign(payload, secret);
+  
+      const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://investment-backend-4.onrender.com/users/verify-account/${signature}`;
+  
       try {
-      await mailSent(fromAdminMail, email, userSubject, link);
-
-      return res.send({
-        status: "Success",
-        message: 'Email verification link sent to your provided email',
-        data: newUser,
-      });
-    } catch (emailError) {
+        await mailSent(fromAdminMail, email, userSubject, link);
+  
+        // Response with success message and user data
+        res.send({
+          status: "Success",
+          message: 'Email verification link sent to your provided email',
+          data: newUser,
+        });
+  
+        // Redirect to the login page after sending the email
+        res.redirect('https://investement-git-main-kaodinna.vercel.app/login');
+      } catch (emailError) {
         console.error("Error sending email:", emailError);
         return res.status(500).json({
-            error: "Error sending email. Please try again later.",
-          });
-        }
+          error: "Error sending email. Please try again later.",
+        });
+      }
     } catch (err) {
       console.error(err);
       return res.status(500).json({
@@ -81,81 +86,103 @@ interface JwtPayload {
       });
     }
   };
+  
 
 /**========================Verify USER==========================**/
+
 export const verifyAccount = async (req: Request, res: Response) => {
-    const { token } = req.params;
-    const secretKey = `${JWT_KEY}verifyThisaccount`;
-    console.log(token)
-    console.log("hello")
-  
-    try {
-  console.log("boy1")
+  const { token } = req.params;
+  const secretKey = `${JWT_KEY}verifyThisaccount`;
 
-      const decoded = jwt.verify(token, secretKey) as JwtPayload;
-  console.log("boy2")
+  try {
+    const decoded = jwt.verify(token, secretKey) as JwtPayload;
+    const user = await User.findOne({ email: decoded.email });
 
-      const user = await User.findOne({ email: decoded.email });
-  console.log(decoded)
-  console.log("boy")
-      if (user) {
-        user.accountStatus = true;
-        const updatedUser = await user.save();
-  
-        if (updatedUser) {
-          const url = `https://investement-git-main-kaodinna.vercel.app/user-login`;
-          res.redirect(url);
-        } else {
-          throw new Error("Account activation failed");
-        }
+    if (user) {
+      user.accountStatus = true;
+      const updatedUser = await user.save();
+
+      if (updatedUser) {
+        const url = `https://investement-git-main-kaodinna.vercel.app/user-login`;
+        
+        // Return a success message along with the URL
+        return res.status(200).json({
+          message: 'Account activated successfully',
+          redirectUrl: url,
+        });
       } else {
-        throw new Error("No record found for the provided email");
+        throw new Error("Account activation failed");
       }
-    } catch (error) {
-      res.status(400).json({ error: 'Invalid token' });
+    } else {
+      throw new Error("No record found for the provided email");
     }
-  };
+  } catch (error) {
+    return res.status(400).json({ error: 'Invalid token' });
+  }
+};
+
   
+/**========================LOGIN USER==========================**/
+
 
 export const Login = async (req: Request, res: Response) => {
   try {
-      const { email, password } = req.body;
+    const { email, password } = req.body;
 
-      const validateResult = loginSchema.validate(req.body, option);
-      if (validateResult.error) {
-          return res.status(400).json({
-              Error: validateResult.error.details[0].message,
-          });
-      }
-
-      const user = await User.findOne({ email });
-
-      if (user) {
-          if (!user.accountStatus) {
-              return res.status(403).json({
-                  message: "Your account is not activated",
-              });
-          }
-
-          const validation = await validatePassword(
-              password,
-              user.password,
-              user.salt
-          );
-
-          if (validation) {
-              // Redirect to a URL upon successful login
-              return res.redirect('https://investement-git-main-kaodinna.vercel.app/dashboard'); // Replace '/dashboard' with your desired URL
-          }
-      }
-
+    const validateResult = loginSchema.validate(req.body, option);
+    if (validateResult.error) {
       return res.status(400).json({
-          message: "Wrong username or password",
+        Error: validateResult.error.details[0].message,
       });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (user) {
+      if (!user.accountStatus) {
+        return res.status(403).json({
+          message: "Your account is not activated",
+        });
+      }
+
+      const validation = await validatePassword(
+        password,
+        user.password,
+        user.salt
+      );
+
+      if (validation) {
+        // Generate a JWT token
+        const payload = {
+          email: user.email,
+          _id: user._id, // Include other necessary fields
+        };
+        const secret = `${JWT_KEY}verifyThisaccount`;
+        const token = jwt.sign(payload, secret);
+
+        // Save the token to local storage
+        localStorage.setItem('token', token);
+
+        // Return user details and token
+        return res.status(200).json({
+          message: "You have successfully logged in",
+          user: {
+            _id: user._id,
+            email: user.email,
+            // Include other user details here
+          },
+          token,
+        });
+      }
+    }
+
+    return res.status(400).json({
+      message: "Wrong username or password",
+    });
   } catch (err) {
-      console.log(err);
-      return res.status(500).json({
-          error: "Internal server error",
-      });
+    console.log(err);
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
 };

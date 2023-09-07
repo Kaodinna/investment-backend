@@ -52,15 +52,17 @@ const Register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         };
         const secret = `${db_config_2.JWT_KEY}verifyThisaccount`;
         const signature = jsonwebtoken_1.default.sign(payload, secret);
-        const link = `Your account creation is almost comeplete. Please kindly click on the link below to activate your account:
-      \nhttps://investment-backend-4.onrender.com/user/verify-account/${signature}`;
+        const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://investment-backend-4.onrender.com/users/verify-account/${signature}`;
         try {
             yield (0, notification_1.mailSent)(db_config_1.fromAdminMail, email, db_config_1.userSubject, link);
-            return res.send({
+            // Response with success message and user data
+            res.send({
                 status: "Success",
                 message: 'Email verification link sent to your provided email',
                 data: newUser,
             });
+            // Redirect to the login page after sending the email
+            res.redirect('https://investement-git-main-kaodinna.vercel.app/login');
         }
         catch (emailError) {
             console.error("Error sending email:", emailError);
@@ -81,22 +83,19 @@ exports.Register = Register;
 const verifyAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { token } = req.params;
     const secretKey = `${db_config_2.JWT_KEY}verifyThisaccount`;
-    console.log(token);
-    console.log("hello");
     try {
-        console.log("boy1");
         const decoded = jsonwebtoken_1.default.verify(token, secretKey);
-        console.log("boy2");
         const user = yield userModel_1.default.findOne({ email: decoded.email });
-        console.log(decoded);
-        console.log("boy");
         if (user) {
             user.accountStatus = true;
             const updatedUser = yield user.save();
             if (updatedUser) {
                 const url = `https://investement-git-main-kaodinna.vercel.app/user-login`;
-                // const url = `https://dev.ferouchi.com/auth/login/${signature}`;
-                res.redirect(url);
+                // Return a success message along with the URL
+                return res.status(200).json({
+                    message: 'Account activated successfully',
+                    redirectUrl: url,
+                });
             }
             else {
                 throw new Error("Account activation failed");
@@ -107,11 +106,11 @@ const verifyAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
     }
     catch (error) {
-        res.status(400).json({ error: 'Invalid token' });
+        return res.status(400).json({ error: 'Invalid token' });
     }
 });
 exports.verifyAccount = verifyAccount;
-/**========================Login USER==========================**/
+/**========================LOGIN USER==========================**/
 const Login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
@@ -130,8 +129,24 @@ const Login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             }
             const validation = yield (0, utility_1.validatePassword)(password, user.password, user.salt);
             if (validation) {
+                // Generate a JWT token
+                const payload = {
+                    email: user.email,
+                    _id: user._id, // Include other necessary fields
+                };
+                const secret = `${db_config_2.JWT_KEY}verifyThisaccount`;
+                const token = jsonwebtoken_1.default.sign(payload, secret);
+                // Save the token to local storage
+                localStorage.setItem('token', token);
+                // Return user details and token
                 return res.status(200).json({
                     message: "You have successfully logged in",
+                    user: {
+                        _id: user._id,
+                        email: user.email,
+                        // Include other user details here
+                    },
+                    token,
                 });
             }
         }
