@@ -61,7 +61,7 @@ interface JwtPayload {
       const secret = `${JWT_KEY}verifyThisaccount`;
       const signature = jwt.sign(payload, secret);
   
-      const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://localhost:8080/users/verify-account/${signature}`;
+      const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://investment-backend-4.onrender.com/users/verify-account/${signature}`;
   
       await mailSent(fromAdminMail, email, userSubject, link);
   
