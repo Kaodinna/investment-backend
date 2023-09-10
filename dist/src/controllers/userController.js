@@ -20,67 +20,6 @@ const db_config_1 = require("../config/db.config");
 const db_config_2 = require("../config/db.config");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 /**========================REGISTER USER==========================**/
-// export const Register = async (req: Request, res: Response) => {
-//   try {
-//     const {
-//       firstName,
-//       lastName,
-//       email,
-//       phone,
-//       address,
-//       password,
-//     } = req.body;
-//     const validateResult = registerSchema.validate(req.body, option);
-//     if (validateResult.error) {
-//       return res.status(400).json({
-//         error: validateResult.error.details[0].message,
-//       });
-//     }
-//     const salt = await GenerateSalt();
-//     const userPassword = await GeneratePassword(password, salt);
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({
-//         message: "User already exists",
-//       });
-//     }
-//     const newUser = await User.create({
-//       email,
-//       password: userPassword,
-//       firstName,
-//       lastName,
-//       salt,
-//       address,
-//       phone,
-//     });
-//     const payload = {
-//       email: newUser.email,
-//       _id: newUser._id, // Include other necessary fields
-//     };
-//     const secret = `${JWT_KEY}verifyThisaccount`;
-//     const signature = jwt.sign(payload, secret);
-//     const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://localhost:8080/users/verify-account/${signature}`;
-//     try {
-//       await mailSent(fromAdminMail, email, userSubject, link);
-//       // Response with success message and user data
-//       res.status(200).json({
-//         status: "Success",
-//         message: 'Email verification link sent to your provided email',
-//         data: newUser,
-//       });
-//     } catch (emailError) {
-//       console.error("Error sending email:", emailError);
-//       return res.status(500).json({
-//         error: "Error sending email. Please try again later.",
-//       });
-//     }
-//   } catch (err) {
-//     console.error(err);
-//     return res.status(500).json({
-//       error: "Internal server error",
-//     });
-//   }
-// };
 const Register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { firstName, lastName, email, phone, address, password, } = req.body;
@@ -114,7 +53,7 @@ const Register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         };
         const secret = `${db_config_2.JWT_KEY}verifyThisaccount`;
         const signature = jsonwebtoken_1.default.sign(payload, secret);
-        const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://localhost:8080/users/verify-account/${signature}`;
+        const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://investment-backend-4.onrender.com/users/verify-account/${signature}`;
         yield (0, notification_1.mailSent)(db_config_1.fromAdminMail, email, db_config_1.userSubject, link);
         // Response with success message and user data
         res.status(200).json({
@@ -142,7 +81,7 @@ const verifyAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             user.accountStatus = true;
             const updatedUser = yield user.save();
             if (updatedUser) {
-                const url = `http://localhost:3000/user-login`;
+                const url = `https://investement.vercel.app/user-login`;
                 res.redirect(url);
                 // Return a success message along with the URL
             }
@@ -173,7 +112,7 @@ const Login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (user) {
             if (!user.accountStatus) {
                 return res.status(403).json({
-                    message: "Your account is not activated",
+                    message: "Your account is not activated Please check your email for verification Link",
                 });
             }
             const validation = yield (0, utility_1.validatePassword)(password, user.password, user.salt);

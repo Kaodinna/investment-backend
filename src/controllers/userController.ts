@@ -131,7 +131,7 @@ export const Login = async (req: Request, res: Response) => {
     if (user) {
       if (!user.accountStatus) {
         return res.status(403).json({
-          message: "Your account is not activated",
+          message: "Your account is not activated Please check your email for verification Link",
         });
       }
 
