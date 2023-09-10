@@ -1,10 +1,8 @@
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import mongoose, { ConnectOptions } from "mongoose";
-import path from "path";
-import cookieParser from "cookie-parser";
-import logger from "morgan";
 import userRouter from "./src/routes/userRoute";
+import cors from 'cors';
 
 
 
@@ -14,6 +12,12 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT;
+
+app.use(
+  cors({
+    origin: '*',
+  })
+);
 
 
 // const url = `mongodb+srv://kaodinna:houseparty22@cluster0.nzmmrt4.mongodb.net/?retryWrites=true&w=majority`
