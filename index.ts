@@ -13,11 +13,7 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT;
 
-app.use(
-  cors({
-    origin: '*',
-  })
-);
+app.use(cors())
 
 
 // const url = `mongodb+srv://kaodinna:houseparty22@cluster0.nzmmrt4.mongodb.net/?retryWrites=true&w=majority`

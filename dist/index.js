@@ -11,9 +11,7 @@ const cors_1 = __importDefault(require("cors"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT;
-app.use((0, cors_1.default)({
-    origin: '*',
-}));
+app.use((0, cors_1.default)());
 // const url = `mongodb+srv://kaodinna:houseparty22@cluster0.nzmmrt4.mongodb.net/?retryWrites=true&w=majority`
 const url = `mongodb+srv://kaodi-investment:houseparty22@cluster0.nzmmrt4.mongodb.net/`;
 mongoose_1.default
