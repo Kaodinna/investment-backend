@@ -20,6 +20,61 @@ const db_config_1 = require("../config/db.config");
 const db_config_2 = require("../config/db.config");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 /**========================REGISTER USER==========================**/
+// export const Register = async (req: Request, res: Response) => {
+//   try {
+//     const {
+//       firstName,
+//       lastName,
+//       email,
+//       phone,
+//       address,
+//       password,
+//     } = req.body;
+//     const validateResult = registerSchema.validate(req.body, option);
+//     if (validateResult.error) {
+//       return res.status(400).json({
+//         error: validateResult.error.details[0].message,
+//       });
+//     }
+//     const salt = await GenerateSalt();
+//     const userPassword = await GeneratePassword(password, salt);
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//     console.log("obi")
+//       return res.status(400).json({
+//         message: "User already exists",
+//       });
+//     }
+//     const newUser = await User.create({
+//       email,
+//       password: userPassword,
+//       firstName,
+//       lastName,
+//       salt,
+//       address,
+//       phone,
+//     });
+//     const payload = {
+//       email: newUser.email,
+//       _id: newUser._id, // Include other necessary fields
+//     };
+//     const secret = `${JWT_KEY}verifyThisaccount`;
+//     const signature = jwt.sign(payload, secret);
+//     const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://investment-backend-4.onrender.com/users/verify-account/${signature}`;
+//     await mailSent(fromAdminMail, email, userSubject, link);
+//     // Response with success message and user data
+//     res.status(200).json({
+//       status: "Success",
+//       message: 'Email verification link sent to your provided email',
+//       data: newUser,
+//     });
+//   } catch (err) {
+//     console.log(err);
+//     return res.status(500).json({
+//       error: "Internal server error",
+//     });
+//   }
+// };
 const Register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { firstName, lastName, email, phone, address, password, } = req.body;
@@ -32,40 +87,42 @@ const Register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const salt = yield (0, utility_1.GenerateSalt)();
         const userPassword = yield (0, utility_1.GeneratePassword)(password, salt);
         const existingUser = yield userModel_1.default.findOne({ email });
-        if (existingUser) {
-            console.log("obi");
-            return res.status(400).json({
-                message: "User already exists",
+        if (!existingUser) {
+            const newUser = yield userModel_1.default.create({
+                email,
+                password: userPassword,
+                firstName,
+                lastName,
+                salt,
+                address,
+                phone,
             });
+            const payload = {
+                email: newUser.email, // Include other necessary fields
+            };
+            const secret = `${db_config_2.JWT_KEY}verifyThisaccount`; // Ensure that you have JWT_KEY set in your environment variables
+            const signature = jsonwebtoken_1.default.sign(payload, secret);
+            const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://investment-backend-4.onrender.com/users/verify-account/${signature}`;
+            const send = yield (0, notification_1.mailSent)(db_config_1.fromAdminMail, email, db_config_1.userSubject, link); // Define fromAdminMail and userSubject variables
+            if (send) {
+                return res.status(200).json({
+                    status: 'Success',
+                    message: 'Email verification link sent to your provided email',
+                    data: newUser, // Return the newly created user object
+                });
+            }
+            else {
+                throw new Error('Unable to send verification mail');
+            }
         }
-        const newUser = yield userModel_1.default.create({
-            email,
-            password: userPassword,
-            firstName,
-            lastName,
-            salt,
-            address,
-            phone,
-        });
-        const payload = {
-            email: newUser.email,
-            _id: newUser._id, // Include other necessary fields
-        };
-        const secret = `${db_config_2.JWT_KEY}verifyThisaccount`;
-        const signature = jsonwebtoken_1.default.sign(payload, secret);
-        const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://investment-backend-4.onrender.com/users/verify-account/${signature}`;
-        yield (0, notification_1.mailSent)(db_config_1.fromAdminMail, email, db_config_1.userSubject, link);
-        // Response with success message and user data
-        res.status(200).json({
-            status: "Success",
-            message: 'Email verification link sent to your provided email',
-            data: newUser,
+        return res.status(400).json({
+            message: 'User already exists',
         });
     }
-    catch (err) {
-        console.log(err);
+    catch (error) {
+        console.error(error);
         return res.status(500).json({
-            error: "Internal server error",
+            message: 'Internal Server Error',
         });
     }
 });

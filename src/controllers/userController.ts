@@ -14,6 +14,7 @@ interface JwtPayload {
 
 /**========================REGISTER USER==========================**/
 
+  
   export const Register = async (req: Request, res: Response) => {
     try {
       const {
@@ -36,50 +37,48 @@ interface JwtPayload {
       const userPassword = await GeneratePassword(password, salt);
   
       const existingUser = await User.findOne({ email });
-      if (existingUser) {
-      console.log("obi")
-        return res.status(400).json({
-          message: "User already exists",
-          
+      if (!existingUser) {
+        const newUser = await User.create({
+          email,
+          password: userPassword,
+          firstName,
+          lastName,
+          salt,
+          address,
+          phone,
         });
-      }
   
-      const newUser = await User.create({
-        email,
-        password: userPassword,
-        firstName,
-        lastName,
-        salt,
-        address,
-        phone,
-      });
+        const payload = {
+          email: newUser.email, // Include other necessary fields
+        };
+        const secret = `${JWT_KEY}verifyThisaccount`; // Ensure that you have JWT_KEY set in your environment variables
+        const signature = jwt.sign(payload, secret);
   
-      const payload = {
-        email: newUser.email,
-        _id: newUser._id, // Include other necessary fields
-      };
-      const secret = `${JWT_KEY}verifyThisaccount`;
-      const signature = jwt.sign(payload, secret);
+        const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://investment-backend-4.onrender.com/users/verify-account/${signature}`;
   
-      const link = `Your account creation is almost complete. Please kindly click on the link below to activate your account:\nhttps://investment-backend-4.onrender.com/users/verify-account/${signature}`;
+        const send = await mailSent(fromAdminMail, email, userSubject, link); // Define fromAdminMail and userSubject variables
   
-      await mailSent(fromAdminMail, email, userSubject, link);
-  
-      // Response with success message and user data
-      res.status(200).json({
-        status: "Success",
-        message: 'Email verification link sent to your provided email',
-        data: newUser,
-      });
-    } catch (err) {
-      console.log(err);
+        if (send) {
+          return res.status(200).json({
+            status: 'Success',
+            message: 'Email verification link sent to your provided email',
+            data: newUser, // Return the newly created user object
+          });
+        } else {
+          throw new Error('Unable to send verification mail');
+        }
+      } 
+        return res.status(400).json({
+          message: 'User already exists',
+        });
+      
+    } catch (error) {
+      console.error(error);
       return res.status(500).json({
-        error: "Internal server error",
+        message: 'Internal Server Error',
       });
     }
   };
-  
-  
 
 /**========================Verify USER==========================**/
 
@@ -149,9 +148,6 @@ export const Login = async (req: Request, res: Response) => {
         };
         const secret = `${JWT_KEY}verifyThisaccount`;
         const token = jwt.sign(payload, secret);
-
-        // Save the token to local storage
-     
 
         // Return user details and token
         return res.status(200).json({
